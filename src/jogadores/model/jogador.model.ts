@@ -3,10 +3,9 @@ interface IJogador {
   telefone: string;
   email: string;
   nome: string;
-  ranking: string;
-  posicaoRanking: number;
-  urlFotoJogador: string;
-
+  ranking: string | null;
+  posicaoRanking: number | null;
+  urlFotoJogador: string | null;
 }
 
 export class Jogador {
@@ -14,9 +13,9 @@ export class Jogador {
   private _telefone: string;
   private _email: string;
   private _nome: string;
-  private _ranking: string;
-  private _posicaoRanking: number;
-  private _urlFotoJogador: string;
+  private _ranking: string | null;
+  private _posicaoRanking: number | null;
+  private _urlFotoJogador: string | null;
 
   constructor({ _id, email, nome, posicaoRanking, ranking, telefone, urlFotoJogador }:IJogador){
     this._id = _id;
@@ -55,27 +54,27 @@ export class Jogador {
     this._nome = value;
   }
 
-  get ranking(): string {
+  get ranking(): string | null {
     return this._ranking;
   }
 
-  set ranking(value: string) {
+  set ranking(value: string | null) {
     this._ranking = value;
   }
 
-  get posicaoRanking(): number {
+  get posicaoRanking(): number | null {
     return this._posicaoRanking;
   }
 
-  set posicaoRanking(value: number) {
+  set posicaoRanking(value: number | null) {
     this._posicaoRanking = value;
   }
 
-  get urlFotoJogador(): string {
+  get urlFotoJogador(): string | null {
     return this._urlFotoJogador;
   }
 
-  set urlFotoJogador(value: string) {
+  set urlFotoJogador(value: string | null) {
     this._urlFotoJogador = value;
   }
 
