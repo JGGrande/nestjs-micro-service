@@ -1,7 +1,8 @@
-import { BadRequestException, Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Res } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Res } from '@nestjs/common';
 import { ICriarJogadorDTO } from './dtos/criar-jogador.dto';
 import { JogadoresService } from './jogadores.service';
 import { Response } from 'express';
+import { IEditarJogadorDTO } from './dtos/editar-jogador.dto';
 
 @Controller('api/v1/jogadores')
 export class JogadoresController {
@@ -36,7 +37,7 @@ export class JogadoresController {
 
   @Get(":id")
   public async encontrarPorId(
-    @Param("id", ParseUUIDPipe) id: string,
+    @Param("id") id: string,
     @Res() response: Response
   ){
     const jogador = await this.jogadoresService.encontrarPorId(id);
@@ -52,4 +53,21 @@ export class JogadoresController {
   public async mostrarTodos(){
     return this.jogadoresService.encontrarTodos()
   }
+
+  @Patch(":id")
+  public async atualizar(
+    @Param("id") id: string,
+    @Body() jogadorDados: IEditarJogadorDTO
+  ){
+    return this.jogadoresService.update({
+      id,
+      ...jogadorDados
+    });
+  }
+
+  @Delete(":id")
+  public async deletar(@Param("id") id: string){
+    return this.jogadoresService.deletar(id);
+  }
+
 }

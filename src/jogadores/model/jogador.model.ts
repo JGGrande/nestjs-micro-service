@@ -1,3 +1,5 @@
+import { Document } from "mongoose";
+
 interface IJogador {
   _id: string;
   telefone: string;
