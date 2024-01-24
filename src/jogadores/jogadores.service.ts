@@ -1,9 +1,9 @@
 import { ConflictException, Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { ICriarJogadorDTO } from './dtos/criar-jogador.dto';
+import { CriarJogadorDTO } from './dtos/criar-jogador.dto';
 import { Jogador } from './model/jogador.model';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Document } from 'mongoose';
-import { IEditarJogadorDTO } from './dtos/editar-jogador.dto';
+import { EditarJogadorDTO } from './dtos/editar-jogador.dto';
 
 interface IJogador extends Document, Omit<Jogador, "_id" | "id"> { }
 
@@ -17,7 +17,7 @@ export class JogadoresService {
 
   private readonly logger = new Logger(JogadoresService.name)
 
-  async criar({ email, nome, telefone }:ICriarJogadorDTO): Promise<Jogador>{
+  async criar({ email, nome, telefone }: CriarJogadorDTO): Promise<Jogador>{
     this.logger.log(`criado jogador: ${nome}, ${ email } ${ telefone}`);
 
     const telefoneExiste = await this.jogadorModel.findOne({ telefone }).exec();
@@ -98,7 +98,7 @@ export class JogadoresService {
     return jogadores.map(jogador => new Jogador(jogador));
   }
 
-  async update({ id, email, nome, posicaoRanking,  ranking, telefone, urlFotoJogador }: IEditarJogadorDTO): Promise<Jogador>{
+  async update({ id, email, nome, posicaoRanking,  ranking, telefone, urlFotoJogador }: EditarJogadorDTO): Promise<Jogador>{
     const jogadorExistente = await this.encontrarPorId(id);
 
     if(!jogadorExistente) throw new NotFoundException("Jogador não encontrado.");

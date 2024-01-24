@@ -1,8 +1,9 @@
-import { BadRequestException, Body, Controller, Delete, Get, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Res } from '@nestjs/common';
-import { ICriarJogadorDTO } from './dtos/criar-jogador.dto';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, ParseUUIDPipe, Patch, Post, Query, Res } from '@nestjs/common';
+import { CriarJogadorDTO } from './dtos/criar-jogador.dto';
 import { JogadoresService } from './jogadores.service';
 import { Response } from 'express';
-import { IEditarJogadorDTO } from './dtos/editar-jogador.dto';
+import { EditarJogadorDTO } from './dtos/editar-jogador.dto';
+import { JogadoresValidacoParametrosPipe } from './pipes/jogadores-validacao-parametros.pipe';
 
 @Controller('api/v1/jogadores')
 export class JogadoresController {
@@ -13,7 +14,7 @@ export class JogadoresController {
 
   @Post()
   public async criarJogador(
-    @Body() { email, nome, telefone }:ICriarJogadorDTO
+    @Body() { email, nome, telefone }: CriarJogadorDTO
   ){
     const jogador = await this.jogadoresService.criar({ email, nome, telefone })
     return  { jogador }
@@ -21,11 +22,9 @@ export class JogadoresController {
 
   @Get("detalhes")
   public async encontrarPorEmail(
-    @Query("email") email: string | undefined,
+    @Query("email", JogadoresValidacoParametrosPipe) email: string,
     @Res() response: Response
   ){
-    if(!email) throw new BadRequestException("Email é obrigatório.");
-
     const jogador = await this.jogadoresService.encontrarPorEmail(email);
 
     if(!jogador){
@@ -37,7 +36,7 @@ export class JogadoresController {
 
   @Get(":id")
   public async encontrarPorId(
-    @Param("id") id: string,
+    @Param("id", JogadoresValidacoParametrosPipe) id: string,
     @Res() response: Response
   ){
     const jogador = await this.jogadoresService.encontrarPorId(id);
@@ -56,8 +55,8 @@ export class JogadoresController {
 
   @Patch(":id")
   public async atualizar(
-    @Param("id") id: string,
-    @Body() jogadorDados: IEditarJogadorDTO
+    @Param("id", JogadoresValidacoParametrosPipe) id: string,
+    @Body() jogadorDados: EditarJogadorDTO
   ){
     return this.jogadoresService.update({
       id,
@@ -66,7 +65,7 @@ export class JogadoresController {
   }
 
   @Delete(":id")
-  public async deletar(@Param("id") id: string){
+  public async deletar(@Param("id", JogadoresValidacoParametrosPipe) id: string){
     return this.jogadoresService.deletar(id);
   }
 
