@@ -12,6 +12,7 @@ import { JogadorSchema } from './model/jogador.schema';
     }])
   ],
   controllers: [ JogadoresController ],
-  providers: [ JogadoresService ]
+  providers: [ JogadoresService ],
+  exports: [ JogadoresService ]
 })
 export class JogadoresModule {}

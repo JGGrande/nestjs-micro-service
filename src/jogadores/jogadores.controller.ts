@@ -3,7 +3,7 @@ import { CriarJogadorDTO } from './dtos/criar-jogador.dto';
 import { JogadoresService } from './jogadores.service';
 import { Response } from 'express';
 import { EditarJogadorDTO } from './dtos/editar-jogador.dto';
-import { JogadoresValidacoParametrosPipe } from './pipes/jogadores-validacao-parametros.pipe';
+import { ValidacaoParametrosPipe } from 'src/common/pipes/validacao-parametros.pipe';
 
 @Controller('api/v1/jogadores')
 export class JogadoresController {
@@ -22,7 +22,7 @@ export class JogadoresController {
 
   @Get("detalhes")
   public async encontrarPorEmail(
-    @Query("email", JogadoresValidacoParametrosPipe) email: string,
+    @Query("email", ValidacaoParametrosPipe) email: string,
     @Res() response: Response
   ){
     const jogador = await this.jogadoresService.encontrarPorEmail(email);
@@ -36,7 +36,7 @@ export class JogadoresController {
 
   @Get(":id")
   public async encontrarPorId(
-    @Param("id", JogadoresValidacoParametrosPipe) id: string,
+    @Param("id", ValidacaoParametrosPipe) id: string,
     @Res() response: Response
   ){
     const jogador = await this.jogadoresService.encontrarPorId(id);
@@ -55,7 +55,7 @@ export class JogadoresController {
 
   @Patch(":id")
   public async atualizar(
-    @Param("id", JogadoresValidacoParametrosPipe) id: string,
+    @Param("id", ValidacaoParametrosPipe) id: string,
     @Body() jogadorDados: EditarJogadorDTO
   ){
     return this.jogadoresService.update({
@@ -65,7 +65,7 @@ export class JogadoresController {
   }
 
   @Delete(":id")
-  public async deletar(@Param("id", JogadoresValidacoParametrosPipe) id: string){
+  public async deletar(@Param("id", ValidacaoParametrosPipe) id: string){
     return this.jogadoresService.deletar(id);
   }
 
