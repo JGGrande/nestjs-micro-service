@@ -81,4 +81,18 @@ export class CategoriaService {
     await this.categoriaModel.findOneAndUpdate({ nome }, { $set: categoriaExistente }).exec();
   }
 
+  async encontarPorJogador(jogadorId: string): Promise<ICategoria | null> {
+    const categoriaDoJogador = await this.categoriaModel
+    .findOne()
+    .where('jogadores')
+    .in([ jogadorId ])
+    .exec()
+
+    if(!categoriaDoJogador){
+      return null;
+    }
+    return categoriaDoJogador
+  }
+
+
 }
