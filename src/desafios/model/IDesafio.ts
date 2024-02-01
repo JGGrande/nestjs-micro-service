@@ -1,6 +1,7 @@
 import { Document } from "mongoose";
 import { Jogador } from "src/jogadores/model/jogador.model";
 import { DesafioStatusEnum } from "./DesafioStatus.enum";
+import { IPartida } from "src/partidas/model/IPartida";
 
 export interface IDesafio extends Document {
   dataHoraDesafio: Date;
@@ -13,12 +14,6 @@ export interface IDesafio extends Document {
   partida: IPartida
 }
 
-export interface IPartida extends Document {
-  categoria: string;
-  jogadores: Array<Jogador>;
-  def: Jogador;
-  resultado: Array<IResultado>;
-}
 export interface IResultado extends Document {
   setPoint: string;
 }

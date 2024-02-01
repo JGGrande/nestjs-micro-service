@@ -8,6 +8,8 @@ import { CategoriaService } from 'src/categoria/categoria.service';
 import { IDesafioRepository } from './model/repository/IDesafioRepository';
 import { AtualizarDesafioDTO } from './dtos/atualizar-desafio.dto';
 import { DesafioStatusEnum } from './model/DesafioStatus.enum';
+import { AtribuirDesafioPartidaDTO } from './dtos/atribuir-desafio-partida.dto';
+import { PartidasService } from 'src/partidas/partidas.service';
 
 @Injectable()
 export class DesafiosService {
@@ -18,7 +20,8 @@ export class DesafiosService {
     private readonly jogadoresService: JogadoresService,
     private readonly categoriaService: CategoriaService,
     @Inject("DesafioRepository")
-    private readonly desafioRepository: IDesafioRepository
+    private readonly desafioRepository: IDesafioRepository,
+    private readonly partidasService: PartidasService
   ){ }
 
   async criar({ dataHoraDesafio, jogadores, solicitanteId }: CriarDesafioDTO): Promise<IDesafio>{
@@ -68,6 +71,7 @@ export class DesafiosService {
       .find()
       .where('jogadores')
       .in([ jogadorId ])
+      .populate(["jogadores", "partida"])
       .exec()
 
     return desafios;
@@ -90,6 +94,39 @@ export class DesafiosService {
     desafio.dataHoraDesafio = desafio.dataHoraDesafio
 
     return desafio;
+  }
+
+  async atribuirPartida(id: string, { def ,resultado }: AtribuirDesafioPartidaDTO ){
+    const desafioExiste = await this.desafioModel.findOne({ _id: id }).exec();
+
+    if(!desafioExiste) {
+      throw new NotFoundException("Desafio não encontrado")
+    }
+
+    const vencedorFazParteDoDesafio = desafioExiste.jogadores.includes(def);
+
+    if(!vencedorFazParteDoDesafio){
+      throw new ConflictException("Vencedor não está vinculado ao desafio.")
+    }
+
+    const partida = await this.partidasService.criar({
+      categoria: desafioExiste.categoria,
+      def,
+      resultado,
+      jogadores: desafioExiste.jogadores
+    });
+
+    const statusRealiazado = DesafioStatusEnum.REALIZADO;
+
+    const desafioAtualizado = await this.desafioModel.findByIdAndUpdate(id, {
+      status: statusRealiazado,
+      partida
+    }).exec();
+
+    desafioAtualizado.status = statusRealiazado;
+    desafioAtualizado.partida = partida;
+
+    return desafioAtualizado
   }
 
   async deletar(id: string): Promise<void>{

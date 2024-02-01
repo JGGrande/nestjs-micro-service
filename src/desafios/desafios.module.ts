@@ -6,6 +6,7 @@ import { DesafioSchema } from './model/Desafio.schema';
 import { JogadoresModule } from 'src/jogadores/jogadores.module';
 import { CategoriaModule } from 'src/categoria/categoria.module';
 import { MongosseDesafioRepository } from './implementations/MongosseDesafioRepository';
+import { PartidasModule } from 'src/partidas/partidas.module';
 
 @Module({
   imports: [
@@ -14,7 +15,8 @@ import { MongosseDesafioRepository } from './implementations/MongosseDesafioRepo
       schema: DesafioSchema
     }]),
     JogadoresModule,
-    CategoriaModule
+    CategoriaModule,
+    PartidasModule
   ],
   controllers: [ DesafiosController  ],
   providers: [

@@ -6,6 +6,7 @@ import { isValidObjectId } from 'mongoose';
 import { Response } from 'express';
 import { ValidacaoParametrosPipe } from 'src/common/pipes/validacao-parametros.pipe';
 import { AtualizarDesafioDTO } from './dtos/atualizar-desafio.dto';
+import { AtribuirDesafioPartidaDTO } from './dtos/atribuir-desafio-partida.dto';
 
 @Controller('api/v1/desafios')
 export class DesafiosController {
@@ -42,6 +43,14 @@ export class DesafiosController {
     @Body() atualizarDesafioDTO: AtualizarDesafioDTO
   ){
     return this.desafiosService.atualizar(desafioId, atualizarDesafioDTO)
+  }
+
+  @Patch(":id/partidas")
+  async atribuirPartida(
+    @Param("id", ValidacaoParametrosPipe) id: string,
+    @Body() body: AtribuirDesafioPartidaDTO
+  ){
+    return this.desafiosService.atribuirPartida(id, body);
   }
 
   @Delete(":id")

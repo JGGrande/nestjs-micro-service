@@ -5,6 +5,7 @@ import { CategoriaController } from './categoria/categoria.controller';
 import { CategoriaService } from './categoria/categoria.service';
 import { CategoriaModule } from './categoria/categoria.module';
 import { DesafiosModule } from './desafios/desafios.module';
+import { PartidasModule } from './partidas/partidas.module';
 
 @Module({
   imports: [
@@ -13,7 +14,8 @@ import { DesafiosModule } from './desafios/desafios.module';
     ),
     JogadoresModule,
     CategoriaModule,
-    DesafiosModule
+    DesafiosModule,
+    PartidasModule
   ],
   controllers: [ ],
   providers: [ ],
