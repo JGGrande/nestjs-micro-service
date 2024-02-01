@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { DesafioSchema } from './model/Desafio.schema';
 import { JogadoresModule } from 'src/jogadores/jogadores.module';
 import { CategoriaModule } from 'src/categoria/categoria.module';
+import { MongosseDesafioRepository } from './implementations/MongosseDesafioRepository';
 
 @Module({
   imports: [
@@ -15,7 +16,13 @@ import { CategoriaModule } from 'src/categoria/categoria.module';
     JogadoresModule,
     CategoriaModule
   ],
-  controllers: [ DesafiosController ],
-  providers: [ DesafiosService ]
+  controllers: [ DesafiosController  ],
+  providers: [
+    DesafiosService,
+    {
+      provide: 'DesafioRepository',
+      useClass: MongosseDesafioRepository
+    }
+  ]
 })
 export class DesafiosModule {}

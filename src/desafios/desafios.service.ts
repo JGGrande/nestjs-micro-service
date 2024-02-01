@@ -1,10 +1,13 @@
-import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { IDesafio } from './model/IDesafio';
 import { CriarDesafioDTO } from './dtos/criar-desadio.dto';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { JogadoresService } from 'src/jogadores/jogadores.service';
 import { CategoriaService } from 'src/categoria/categoria.service';
+import { IDesafioRepository } from './model/repository/IDesafioRepository';
+import { AtualizarDesafioDTO } from './dtos/atualizar-desafio.dto';
+import { DesafioStatusEnum } from './model/DesafioStatus.enum';
 
 @Injectable()
 export class DesafiosService {
@@ -13,7 +16,9 @@ export class DesafiosService {
     @InjectModel("Desafio")
     private readonly desafioModel: Model<IDesafio>,
     private readonly jogadoresService: JogadoresService,
-    private readonly categoriaService: CategoriaService
+    private readonly categoriaService: CategoriaService,
+    @Inject("DesafioRepository")
+    private readonly desafioRepository: IDesafioRepository
   ){ }
 
   async criar({ dataHoraDesafio, jogadores, solicitanteId }: CriarDesafioDTO): Promise<IDesafio>{
@@ -57,7 +62,45 @@ export class DesafiosService {
 
     return desafio
   }
+
+  async consultarPorJogador(jogadorId: string): Promise<IDesafio[]>{
+    const desafios = await this.desafioModel
+      .find()
+      .where('jogadores')
+      .in([ jogadorId ])
+      .exec()
+
+    return desafios;
+  }
+
   async listarTodos(): Promise<IDesafio[]>{
-    return this.desafioModel.find().exec()
+    return this.desafioRepository.findAll();
+  }
+
+  async atualizar(desafioId: string, { dataHoraDesafio, status }: AtualizarDesafioDTO): Promise<IDesafio> {
+    const desafioExiste = await this.desafioModel.findOne({ _id: desafioId }).exec();
+
+    if(!desafioExiste) {
+      throw new NotFoundException("Desafio não encontrado")
+    }
+
+    const desafio = await this.desafioModel.findByIdAndUpdate(desafioId, { $set: { dataHoraDesafio, status } }).exec();
+
+    desafio.status = status;
+    desafio.dataHoraDesafio = desafio.dataHoraDesafio
+
+    return desafio;
+  }
+
+  async deletar(id: string): Promise<void>{
+    const desafioExiste = await this.desafioModel.findOne({ _id: id }).exec();
+
+    if(!desafioExiste) {
+      throw new NotFoundException("Desafio não encontrado")
+    }
+
+    const status = DesafioStatusEnum.CANCELADO
+
+    await this.desafioModel.findByIdAndUpdate(id, { $set: { status } }).exec();
   }
 }
