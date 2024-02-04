@@ -1,8 +1,8 @@
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { IDesafio } from './model/IDesafio';
 import { CriarDesafioDTO } from './dtos/criar-desadio.dto';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
+import { Connection, Model } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { JogadoresService } from 'src/jogadores/jogadores.service';
 import { CategoriaService } from 'src/categoria/categoria.service';
 import { IDesafioRepository } from './model/repository/IDesafioRepository';
@@ -21,7 +21,9 @@ export class DesafiosService {
     private readonly categoriaService: CategoriaService,
     @Inject("DesafioRepository")
     private readonly desafioRepository: IDesafioRepository,
-    private readonly partidasService: PartidasService
+    private readonly partidasService: PartidasService,
+    @InjectConnection()
+    private readonly connection: Connection
   ){ }
 
   async criar({ dataHoraDesafio, jogadores, solicitanteId }: CriarDesafioDTO): Promise<IDesafio>{
@@ -71,7 +73,7 @@ export class DesafiosService {
       .find()
       .where('jogadores')
       .in([ jogadorId ])
-      .populate(["jogadores", "partida"])
+      .populate(["solicitante","jogadores", "partida"])
       .exec()
 
     return desafios;
@@ -97,36 +99,52 @@ export class DesafiosService {
   }
 
   async atribuirPartida(id: string, { def ,resultado }: AtribuirDesafioPartidaDTO ){
-    const desafioExiste = await this.desafioModel.findOne({ _id: id }).exec();
+    const session = await this.connection.startSession();
 
-    if(!desafioExiste) {
-      throw new NotFoundException("Desafio não encontrado")
+    session.startTransaction();
+
+    try{
+      const desafioExiste = await this.desafioModel.findOne({ _id: id }).exec();
+
+      if(!desafioExiste) {
+        throw new NotFoundException("Desafio não encontrado")
+      }
+
+      const vencedorFazParteDoDesafio = desafioExiste.jogadores.includes(def);
+
+      if(!vencedorFazParteDoDesafio){
+        throw new ConflictException("Vencedor não está vinculado ao desafio.")
+      }
+
+      const partida = await this.partidasService.criar({
+        categoria: desafioExiste.categoria,
+        def,
+        resultado,
+        jogadores: desafioExiste.jogadores
+      });
+
+      const statusRealiazado = DesafioStatusEnum.REALIZADO;
+
+      const desafioAtualizado = await this.desafioModel.findByIdAndUpdate(id, {
+        status: statusRealiazado,
+        partida
+      }, { session }).exec();
+
+      await session.commitTransaction();
+
+      desafioAtualizado.status = statusRealiazado;
+      desafioAtualizado.partida = partida;
+
+      session.endSession();
+
+      return desafioAtualizado
+    }catch( error ) {
+      console.error( error );
+
+      session.endSession()
+
+      throw new BadRequestException("Erro ao atribuir partida, entre em contato com o suporte.");
     }
-
-    const vencedorFazParteDoDesafio = desafioExiste.jogadores.includes(def);
-
-    if(!vencedorFazParteDoDesafio){
-      throw new ConflictException("Vencedor não está vinculado ao desafio.")
-    }
-
-    const partida = await this.partidasService.criar({
-      categoria: desafioExiste.categoria,
-      def,
-      resultado,
-      jogadores: desafioExiste.jogadores
-    });
-
-    const statusRealiazado = DesafioStatusEnum.REALIZADO;
-
-    const desafioAtualizado = await this.desafioModel.findByIdAndUpdate(id, {
-      status: statusRealiazado,
-      partida
-    }).exec();
-
-    desafioAtualizado.status = statusRealiazado;
-    desafioAtualizado.partida = partida;
-
-    return desafioAtualizado
   }
 
   async deletar(id: string): Promise<void>{
